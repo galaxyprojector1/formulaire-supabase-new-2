@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test 10 Leads</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #logs {
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            height: 400px;
+            overflow-y: scroll;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test d'insertion de 10 leads</h1>
+        <p>Ce script va insérer 10 leads de test dans votre base Supabase.</p>
+        
+        <button onclick="startTest()">🚀 Lancer le test</button>
+        <button onclick="clearLogs()">🧹 Effacer les logs</button>
+        
+        <div id="logs"></div>
+    </div>
+
+    <script type="module">
+        // Configuration Supabase
+        const { createClient } = supabase;
+        const supabaseClient = createClient(
+            'https://mmdbevzsaqbkkdgcjaql.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZGJldnpzYXFia2tkZ2NqYXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzODc3MzEsImV4cCI6MjA2OTk2MzczMX0.YGUzhpcKixZWsRAswFQtCCnRdSOSlDOXb7UENNnem9M'
+        );
+
+        // Fonction d'insertion (copie de supabase-logic.js)
+        const insertLead = async (state) => {
+            return await supabaseClient.from('leads').insert([{
+                email: state.email || '',
+                code_postal: state.code_postal || '',
+                statut_occupant: state.statut_occupant || '',
+                type_logement: state.type_logement || '',
+                nom: state.nom || '',
+                tel: state.tel || '',
+                activité: 'solaire',
+                formulaire_id: 'form_solaire_01',
+                données_brutes: {
+                    chauffage: state.chauffage || '',
+                    surface: state.surface || '',
+                    etape_actuelle: state.currentStep || 1
+                },
+                progression: state.currentStep || 1
+            }]);
+        };
+
+        // Données de test
+        const testData = {
+            statuts: ['propriétaire', 'locataire'],
+            logements: ['maison', 'appartement'],
+            chauffages: ['gaz', 'électrique', 'bois', 'pompe_chaleur', 'fioul'],
+            surfaces: ['moins_30', '30_60', 'plus_60'],
+            codes_postaux: ['75001', '69000', '13000', '33000', '59000', '31000', '44000', '67000', '35000', '21000'],
+            noms: ['Jean Dupont', 'Marie Martin', 'Pierre Durand', 'Sophie Bernard', 'Michel Petit', 'Isabelle Moreau', 'Philippe Simon', 'Catherine Laurent', 'Alain Lefebvre', 'Nathalie Roux'],
+            emails: ['jean.dupont@test.com', 'marie.martin@test.com', 'pierre.durand@test.com', 'sophie.bernard@test.com', 'michel.petit@test.com', 'isabelle.moreau@test.com', 'philippe.simon@test.com', 'catherine.laurent@test.com', 'alain.lefebvre@test.com', 'nathalie.roux@test.com'],
+            telephones: ['0123456789', '0234567890', '0345678901', '0456789012', '0567890123', '0678901234', '0789012345', '0890123456', '0901234567', '0612345678']
+        };
+
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function generateTestLead(index) {
+            return {
+                statut_occupant: getRandomItem(testData.statuts),
+                type_logement: getRandomItem(testData.logements),
+                chauffage: getRandomItem(testData.chauffages),
+                surface: getRandomItem(testData.surfaces),
+                code_postal: testData.codes_postaux[index],
+                nom: testData.noms[index],
+                email: testData.emails[index],
+                tel: testData.telephones[index],
+                currentStep: 8,
+                leadId: null
+            };
+        }
+
+        function log(message) {
+            const logs = document.getElementById('logs');
+            logs.innerHTML += message + '\n';
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        window.startTest = async function() {
+            log('🚀 Début du test - Insertion de 10 leads...');
+            
+            for (let i = 0; i < 10; i++) {
+                try {
+                    const testLead = generateTestLead(i);
+                    log(`\n📝 Lead ${i + 1}: ${testLead.nom} (${testLead.email})`);
+                    
+                    const result = await insertLead(testLead);
+                    
+                    if (result.error) {
+                        log(`❌ Erreur Lead ${i + 1}: ${result.error.message}`);
+                    } else {
+                        log(`✅ Lead ${i + 1} inséré avec succès !`);
+                    }
+                    
+                    // Pause de 500ms entre chaque insertion
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                } catch (error) {
+                    log(`💥 Exception Lead ${i + 1}: ${error.message}`);
+                }
+            }
+            
+            log('\n🎯 Test terminé - Vérifiez votre table Supabase !');
+        };
+
+        window.clearLogs = function() {
+            document.getElementById('logs').innerHTML = '';
+        };
+
+        log('✅ Script de test prêt. Cliquez sur "Lancer le test" !');
+    </script>
+</body>
+</html>
