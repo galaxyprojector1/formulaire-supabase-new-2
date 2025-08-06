@@ -150,8 +150,7 @@ async function selectChoice(button, fieldName) {
     state[fieldName] = button.dataset.value;
     saveToLocalStorage();
     
-    // Sauvegarder dans Supabase à chaque étape
-    await saveToSupabase();
+    // Sauvegarde supprimée - uniquement à la fin
 }
 
 function validateCodePostal() {
@@ -289,15 +288,8 @@ async function handleEmailSubmission() {
         button.textContent = 'Enregistrement...';
         button.disabled = true;
         
-        // Appeler insertLead avec les données actuelles
-        const result = await insertLead(state);
-        
-        if (result.error) {
-            throw new Error(result.error.message);
-        }
-        
-        console.log('Lead inséré avec succès:', result);
-        state.leadId = result.data?.[0]?.id;
+        // Pas de sauvegarde à l'email - uniquement à la fin
+        console.log('Email validé, passage à l\'étape suivante');
         
         // Continuer vers l'étape suivante
         goToNextStep();
@@ -326,8 +318,8 @@ async function handleFinalSubmission() {
         
         console.log('État avant updateLead:', state);
         
-        // Appeler updateLead avec toutes les données
-        const result = await updateLead(state);
+        // Appeler insertLead avec toutes les données
+        const result = await insertLead(state);
         
         console.log('Lead mis à jour avec succès:', result);
         
@@ -408,26 +400,8 @@ function saveToLocalStorage() {
     localStorage.setItem('solarFormData', JSON.stringify(state));
 }
 
-async function saveToSupabase() {
-    try {
-        if (!state.leadId) {
-            // Première sauvegarde - insertion
-            const result = await insertLead(state);
-            if (result.data && result.data[0]) {
-                state.leadId = result.data[0].id;
-                saveToLocalStorage();
-                console.log('✅ Lead créé:', state.leadId);
-            }
-        } else {
-            // Mise à jour
-            await updateLead(state);
-            console.log('✅ Lead mis à jour:', state.leadId);
-        }
-    } catch (error) {
-        console.error('⚠️ Erreur sauvegarde Supabase:', error);
-        // Continue quand même - données sauvées localement
-    }
-}
+// Fonction saveToSupabase supprimée - sauvegarde uniquement à la fin
+
 
 function loadSavedData() {
     const savedData = localStorage.getItem('solarFormData');
